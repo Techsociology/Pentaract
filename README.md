@@ -14,7 +14,7 @@ Pentaract is aimed to take as small disk space as possible. So it does not need 
 
 The platform itself can be used differently, like as a personal (on your own server or a local machine) platform or a platform for many users with multiple storages and so on. Since it provides Rest API, you can also use it as a file system in your backend like [NextCloud](https://nextcloud.com/) or [AWS S3](https://aws.amazon.com/s3/) or S3 compatable services (like [MinIO](https://min.io/)), but for now it's so early so I don't recommend to use it in production ready apps.
 
-# Installation & Useage 
+# Installation & Usage 
 Docker Compose with pre-built image (recommended)
 
 1. Clone this repo 
