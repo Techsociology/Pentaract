@@ -1,15 +1,88 @@
-a:not(.default-link) {
-	text-decoration: none;
-	color: inherit;
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
-.drawer-paper.MuiDrawer-paper {
-	position: static;
-	height: 100%;
+a:not(.default-link) {
+    text-decoration: none;
+    color: inherit;
 }
-.drawer-paper-opened.MuiDrawer-paper {
-	width: 240px;
+
+
+:root {
+    --bg-primary: #ffffff;
+    --text-primary: #0D1821;
+    --drawer-bg: #ffffff;
+    --divider: rgba(0, 0, 0, 0.12);
 }
-.drawer-paper-closed.MuiDrawer-paper {
-	width: initial;
+
+body.dark {
+    --bg-primary: #121212; 
+    --text-primary: #f8fafc;
+    --drawer-bg: #1e1e1e; 
+    --divider: rgba(255, 255, 255, 0.12);
+}
+
+
+body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+
+main, .MuiContainer-root {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    min-height: 100vh;
+}
+
+
+.MuiDrawer-root {
+    flex-shrink: 0;
+}
+
+.MuiDrawer-paper {
+    background-color: var(--drawer-bg) !important;
+    color: var(--text-primary) !important;
+    border-right: 1px solid var(--divider) !important;
+    position: relative !important; /* Force it to push content to the right */
+    height: 100vh;
+    box-sizing: border-box;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.drawer-paper-opened {
+    width: 240px;
+}
+
+.drawer-paper-closed {
+    width: 70px;
+}
+
+
+.MuiSvgIcon-root {
+    color: var(--text-primary) !important;
+    fill: var(--text-primary) !important;
+}
+
+.MuiButton-root {
+    transition: background-color 0.2s ease;
+}
+
+body.dark .MuiTypography-root {
+    color: var(--text-primary);
+}
+
+body.dark::-webkit-scrollbar {
+    width: 8px;
+}
+body.dark::-webkit-scrollbar-track {
+    background: #121212;
+}
+body.dark::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
 }
