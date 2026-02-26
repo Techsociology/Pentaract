@@ -11,17 +11,21 @@ a:not(.default-link) {
 
 
 :root {
-    --bg-primary: #ffffff;
-    --text-primary: #0D1821;
-    --drawer-bg: #ffffff;
-    --divider: rgba(0, 0, 0, 0.12);
+    --bg-primary:     #ffffff;
+    --bg-paper:       #ffffff;
+    --text-primary:   #0D1821;
+    --text-secondary: #475569;
+    --drawer-bg:      #ffffff;
+    --divider:        rgba(0, 0, 0, 0.12);
 }
 
 body.dark {
-    --bg-primary: #121212; 
-    --text-primary: #f8fafc;
-    --drawer-bg: #1e1e1e; 
-    --divider: rgba(255, 255, 255, 0.12);
+    --bg-primary:     #121212;
+    --bg-paper:       #1e1e1e;
+    --text-primary:   #f8fafc;
+    --text-secondary: #94a3b8;
+    --drawer-bg:      #1e1e1e;
+    --divider:        rgba(255, 255, 255, 0.12);
 }
 
 
@@ -33,56 +37,77 @@ body {
 }
 
 
-main, .MuiContainer-root {
+main.MuiBox-root {
     background-color: var(--bg-primary) !important;
     color: var(--text-primary) !important;
-    min-height: 100vh;
 }
 
 
-.MuiDrawer-root {
-    flex-shrink: 0;
+.MuiPaper-root:not(.MuiAppBar-root) {
+    background-color: var(--bg-paper) !important;
+    color: var(--text-primary) !important;
+    background-image: none !important;
 }
+
+
+.MuiTypography-root {
+    color: var(--text-primary) !important;
+}
+
+
+.MuiAppBar-root,
+.MuiAppBar-root.MuiPaper-root {
+    background-color: #0D1821 !important;
+    color: #ffffff !important;
+    background-image: none !important;
+}
+.MuiAppBar-root .MuiTypography-root,
+.MuiAppBar-root .MuiSvgIcon-root,
+.MuiAppBar-root .MuiIconButton-root {
+    color: #ffffff !important;
+}
+
 
 .MuiDrawer-paper {
     background-color: var(--drawer-bg) !important;
     color: var(--text-primary) !important;
     border-right: 1px solid var(--divider) !important;
-    position: relative !important; /* Force it to push content to the right */
+    background-image: none !important;
+    position: relative !important;
     height: 100vh;
     box-sizing: border-box;
     transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-
-.drawer-paper-opened {
-    width: 240px;
-}
-
-.drawer-paper-closed {
-    width: 70px;
-}
-
-
-.MuiSvgIcon-root {
+.MuiDrawer-paper .MuiSvgIcon-root,
+.MuiDrawer-paper .MuiListItemIcon-root,
+.MuiDrawer-paper .MuiIconButton-root {
     color: var(--text-primary) !important;
-    fill: var(--text-primary) !important;
 }
 
-.MuiButton-root {
-    transition: background-color 0.2s ease;
+
+.MuiInputBase-root {
+    color: var(--text-primary) !important;
+}
+.MuiInputLabel-root,
+.MuiFormHelperText-root {
+    color: var(--text-secondary) !important;
 }
 
-body.dark .MuiTypography-root {
-    color: var(--text-primary);
+
+.MuiDivider-root {
+    border-color: var(--divider) !important;
 }
 
-body.dark::-webkit-scrollbar {
-    width: 8px;
+
+.MuiTableCell-root {
+    color: var(--text-primary) !important;
+    border-color: var(--divider) !important;
 }
-body.dark::-webkit-scrollbar-track {
-    background: #121212;
-}
-body.dark::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 4px;
-}
+
+.drawer-paper-opened { width: 240px; }
+.drawer-paper-closed  { width: 70px; }
+
+
+body.dark::-webkit-scrollbar       { width: 8px; }
+body.dark::-webkit-scrollbar-track { background: #121212; }
+body.dark::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
