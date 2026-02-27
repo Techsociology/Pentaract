@@ -33,9 +33,9 @@ FROM node:21-slim AS ui
 WORKDIR /app
 COPY ./ui .
 RUN npm install -g pnpm
-RUN pnpm i
+RUN npx pnpm i
 ENV VITE_API_BASE /api
-RUN pnpm run build
+RUN pnpm build
 
 ############################################################################################
 ####  RUNNING

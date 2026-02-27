@@ -16,7 +16,7 @@ const BasicLayout = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <CssBaseline />
             <Header />
-            <Toolbar /> 
+            <Toolbar sx={{ minHeight: '60px !important', height: '60px' }} />
 
             <Box sx={{ display: 'flex', flexGrow: 1 }}>
                 <SideBar />
@@ -27,12 +27,12 @@ const BasicLayout = () => {
                         flexGrow: 1,
                         bgcolor: 'background.default',
                         color: 'text.primary',
-                        minHeight: '100vh',
+                        minHeight: 'calc(100vh - 60px)',
                     }}
                 >
-                    <Container 
-                        maxWidth={false} 
-                        sx={{ pt: 4, px: 3 }}
+                    <Container
+                        maxWidth={false}
+                        sx={{ pt: 4, px: 4, pb: 4 }}
                     >
                         <Outlet />
                     </Container>

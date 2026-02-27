@@ -16,7 +16,7 @@ import Register from './pages/Register'
 import NotFound from './pages/404'
 
 const App = () => {
-    const [mode, setMode] = createSignal(localStorage.getItem('theme') || 'light');
+    const [mode, setMode] = createSignal(localStorage.getItem('theme') || 'dark');
 
     createEffect(() => {
         const currentMode = mode();
@@ -25,30 +25,40 @@ const App = () => {
     });
 
     const colorMode = {
-        mode: mode, 
+        mode: mode,
         toggleColorMode: () => {
             setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
         },
     };
 
-    const theme = createMemo(() => 
+    const theme = createMemo(() =>
         createTheme({
             palette: {
-                mode: mode(), 
-                primary: { 
-                    main: mode() === 'light' ? '#0D1821' : '#90caf9' 
+                mode: mode(),
+                primary: {
+                    main: '#3b82f6',
+                },
+                secondary: {
+                    main: '#3b82f6',
                 },
                 background: {
-                    default: mode() === 'light' ? '#ffffff' : '#121212',
-                    paper: mode() === 'light' ? '#ffffff' : '#1e1e1e',
+                    default: mode() === 'light' ? '#f0f4f8' : '#07090f',
+                    paper: mode() === 'light' ? '#ffffff' : '#101828',
                 },
                 text: {
-                    primary: mode() === 'light' ? '#0D1821' : '#f8fafc',
-                    secondary: mode() === 'light' ? '#475569' : '#94a3b8',
+                    primary: mode() === 'light' ? '#0f172a' : '#e2e8f0',
+                    secondary: mode() === 'light' ? '#475569' : '#64748b',
                 },
                 action: {
-                    active: mode() === 'light' ? '#0D1821' : '#ffffff',
-                }
+                    active: mode() === 'light' ? '#0f172a' : '#e2e8f0',
+                },
+                divider: mode() === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)',
+            },
+            typography: {
+                fontFamily: "'Outfit', sans-serif",
+            },
+            shape: {
+                borderRadius: 10,
             },
         })
     );

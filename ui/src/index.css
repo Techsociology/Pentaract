@@ -1,113 +1,468 @@
+/* =========================================================
+   PENTARACT — MODERN DARK UI
+   Design: Deep space aesthetic · Electric blue accent
+   Fonts: Outfit (UI) · JetBrains Mono (data)
+   ========================================================= */
+
+/* ── CSS VARIABLES ───────────────────────────────────────── */
+:root {
+  --bg-base:       #07090f;
+  --bg-surface:    #0c1120;
+  --bg-paper:      #101828;
+  --bg-elevated:   #192135;
+  --bg-hover:      #1e2d46;
+
+  --accent:        #3b82f6;
+  --accent-light:  #60a5fa;
+  --accent-dim:    rgba(59, 130, 246, 0.18);
+  --accent-glow:   rgba(59, 130, 246, 0.08);
+  --accent-border: rgba(59, 130, 246, 0.25);
+
+  --text-primary:   #e2e8f0;
+  --text-secondary: #64748b;
+  --text-muted:     #334155;
+  --text-inverse:   #080c14;
+
+  --border:        rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --divider:       rgba(255, 255, 255, 0.06);
+
+  --sidebar-width-open:   248px;
+  --sidebar-width-closed: 68px;
+  --header-height:        60px;
+
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+  --shadow-lg:  0 10px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-accent: 0 0 20px rgba(59, 130, 246, 0.25);
+
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.light {
+  --bg-base:       #f0f4f8;
+  --bg-surface:    #f8fafc;
+  --bg-paper:      #ffffff;
+  --bg-elevated:   #f1f5f9;
+  --bg-hover:      #e2eaf5;
+
+  --accent:        #2563eb;
+  --accent-light:  #3b82f6;
+  --accent-dim:    rgba(37, 99, 235, 0.1);
+  --accent-glow:   rgba(37, 99, 235, 0.05);
+  --accent-border: rgba(37, 99, 235, 0.2);
+
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+
+  --border:        rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.04);
+  --divider:       rgba(0, 0, 0, 0.08);
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.1);
+  --shadow-lg:  0 10px 40px rgba(0,0,0,0.12);
+  --shadow-accent: 0 0 20px rgba(37, 99, 235, 0.15);
+}
+
 html, body, #root {
-    height: 100%;
-    margin: 0;
-    padding: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-base) !important;
+  color: var(--text-primary) !important;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
 a:not(.default-link) {
-    text-decoration: none;
-    color: inherit;
+  text-decoration: none;
+  color: inherit;
 }
 
-
-:root {
-    --bg-primary:     #ffffff;
-    --bg-paper:       #ffffff;
-    --text-primary:   #0D1821;
-    --text-secondary: #475569;
-    --drawer-bg:      #ffffff;
-    --divider:        rgba(0, 0, 0, 0.12);
+.default-link {
+  color: var(--accent-light);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s;
 }
+.default-link:hover { color: var(--accent); }
 
-body.dark {
-    --bg-primary:     #121212;
-    --bg-paper:       #1e1e1e;
-    --text-primary:   #f8fafc;
-    --text-secondary: #94a3b8;
-    --drawer-bg:      #1e1e1e;
-    --divider:        rgba(255, 255, 255, 0.12);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-
-body {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-
-main.MuiBox-root {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-}
-
-
-.MuiPaper-root:not(.MuiAppBar-root) {
-    background-color: var(--bg-paper) !important;
-    color: var(--text-primary) !important;
-    background-image: none !important;
-}
-
-
+/* TYPOGRAPHY */
 .MuiTypography-root {
-    color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+.MuiTypography-h1,.MuiTypography-h2,.MuiTypography-h3,
+.MuiTypography-h4,.MuiTypography-h5,.MuiTypography-h6 {
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+.MuiTypography-body1, .MuiTypography-body2 {
+  color: var(--text-secondary) !important;
 }
 
+.MuiDivider-root { border-color: var(--divider) !important; }
 
+/* APPBAR */
 .MuiAppBar-root,
 .MuiAppBar-root.MuiPaper-root {
-    background-color: #0D1821 !important;
-    color: #ffffff !important;
-    background-image: none !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  height: var(--header-height);
 }
-.MuiAppBar-root .MuiTypography-root,
-.MuiAppBar-root .MuiSvgIcon-root,
+.MuiAppBar-root .MuiToolbar-root {
+  height: var(--header-height);
+  min-height: var(--header-height) !important;
+  padding: 0 20px !important;
+}
+.MuiAppBar-root .MuiTypography-root {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
+  letter-spacing: -0.03em !important;
+}
+.MuiAppBar-root .MuiSvgIcon-root { color: var(--text-secondary) !important; }
 .MuiAppBar-root .MuiIconButton-root {
-    color: #ffffff !important;
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  transition: var(--transition) !important;
+}
+.MuiAppBar-root .MuiIconButton-root:hover {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
 }
 
+/* Spacer toolbar */
+.MuiToolbar-root:not(.MuiAppBar-root .MuiToolbar-root) {
+  min-height: var(--header-height) !important;
+}
 
+/* DRAWER */
 .MuiDrawer-paper {
-    background-color: var(--drawer-bg) !important;
-    color: var(--text-primary) !important;
-    border-right: 1px solid var(--divider) !important;
-    background-image: none !important;
-    position: relative !important;
-    height: 100vh;
-    box-sizing: border-box;
-    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-right: 1px solid var(--border) !important;
+  background-image: none !important;
+  position: relative !important;
+  height: 100vh;
+  box-sizing: border-box;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: hidden;
+}
+.MuiDrawer-paper .MuiList-root { padding: 8px !important; }
+.MuiDrawer-paper .MuiListItemButton-root {
+  border-radius: var(--radius-md) !important;
+  margin-bottom: 2px !important;
+  transition: var(--transition) !important;
+  color: var(--text-secondary) !important;
+}
+.MuiDrawer-paper .MuiListItemButton-root:hover {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+}
+.MuiDrawer-paper .MuiListItemButton-root:hover .MuiSvgIcon-root {
+  color: var(--accent-light) !important;
 }
 .MuiDrawer-paper .MuiSvgIcon-root,
-.MuiDrawer-paper .MuiListItemIcon-root,
+.MuiDrawer-paper .MuiListItemIcon-root {
+  color: var(--text-secondary) !important;
+  min-width: 0 !important;
+}
+.MuiDrawer-paper .MuiListItemText-primary {
+  color: var(--text-secondary) !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+}
 .MuiDrawer-paper .MuiIconButton-root {
-    color: var(--text-primary) !important;
+  color: var(--text-muted) !important;
+  border-radius: var(--radius-md) !important;
+  transition: var(--transition) !important;
+}
+.MuiDrawer-paper .MuiIconButton-root:hover {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-secondary) !important;
 }
 
-
-.MuiInputBase-root {
-    color: var(--text-primary) !important;
+/* Sidebar active nav link */
+.sidebar-item-active .MuiListItemButton-root {
+  background-color: var(--accent-dim) !important;
+  color: var(--accent-light) !important;
 }
-.MuiInputLabel-root,
-.MuiFormHelperText-root {
-    color: var(--text-secondary) !important;
+.sidebar-item-active .MuiSvgIcon-root,
+.sidebar-item-active .MuiListItemIcon-root {
+  color: var(--accent-light) !important;
+}
+.sidebar-item-active .MuiListItemText-primary {
+  color: var(--accent-light) !important;
+  font-weight: 600 !important;
 }
 
-
-.MuiDivider-root {
-    border-color: var(--divider) !important;
+/* PAPER */
+.MuiPaper-root:not(.MuiAppBar-root):not(.MuiDrawer-paper):not(.MuiMenu-paper):not(.MuiDialog-paper) {
+  background-color: var(--bg-paper) !important;
+  color: var(--text-primary) !important;
+  background-image: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
-
+/* TABLE */
+.MuiTableContainer-root {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  border: 1px solid var(--border) !important;
+  background-color: var(--bg-paper) !important;
+  box-shadow: var(--shadow-md) !important;
+}
 .MuiTableCell-root {
-    color: var(--text-primary) !important;
-    border-color: var(--divider) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--divider) !important;
+  font-family: 'Outfit', sans-serif !important;
+  padding: 14px 18px !important;
+}
+.MuiTableHead-root .MuiTableCell-root {
+  color: var(--text-secondary) !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  background-color: var(--bg-elevated) !important;
+}
+.MuiTableBody-root .MuiTableRow-root {
+  transition: background-color 0.15s ease !important;
+}
+.MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: var(--bg-elevated) !important;
 }
 
-.drawer-paper-opened { width: 240px; }
-.drawer-paper-closed  { width: 70px; }
+/* BUTTONS */
+.MuiButton-root {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 0.88rem !important;
+  transition: var(--transition) !important;
+}
+.MuiButton-containedPrimary,
+.MuiButton-containedSecondary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.3) !important;
+}
+.MuiButton-containedPrimary:hover,
+.MuiButton-containedSecondary:hover {
+  box-shadow: var(--shadow-accent) !important;
+  transform: translateY(-1px);
+}
+.MuiButton-outlined {
+  border-color: var(--accent-border) !important;
+  color: var(--accent-light) !important;
+}
+.MuiButton-outlined:hover {
+  background-color: var(--accent-dim) !important;
+}
 
+/* FAB */
+.MuiFab-root {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  border-radius: var(--radius-lg) !important;
+}
+.MuiFab-secondary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(59,130,246,0.3) !important;
+}
 
-body.dark::-webkit-scrollbar       { width: 8px; }
-body.dark::-webkit-scrollbar-track { background: #121212; }
-body.dark::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+/* ICON BUTTONS */
+.MuiIconButton-root {
+  border-radius: var(--radius-md) !important;
+  transition: var(--transition) !important;
+}
+.MuiIconButton-root:hover { background-color: var(--bg-elevated) !important; }
+
+/* TOGGLE BUTTONS */
+.MuiToggleButtonGroup-root {
+  background-color: var(--bg-elevated) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border) !important;
+  padding: 3px !important;
+}
+.MuiToggleButton-root {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-secondary) !important;
+  padding: 5px 16px !important;
+  transition: var(--transition) !important;
+}
+.MuiToggleButton-root.Mui-selected {
+  background-color: var(--accent) !important;
+  color: #ffffff !important;
+}
+.MuiToggleButton-root:hover:not(.Mui-selected) {
+  background-color: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+/* INPUTS */
+.MuiInputBase-root {
+  color: var(--text-primary) !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+.MuiOutlinedInput-root {
+  background-color: var(--bg-elevated) !important;
+  border-radius: var(--radius-md) !important;
+}
+.MuiOutlinedInput-notchedOutline {
+  border-color: var(--border) !important;
+  transition: border-color 0.2s !important;
+}
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent-border) !important;
+}
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent) !important;
+  border-width: 1.5px !important;
+}
+.MuiInputBase-root.MuiInput-root:after {
+  border-bottom-color: var(--accent) !important;
+}
+.MuiInputLabel-root, .MuiFormHelperText-root {
+  color: var(--text-secondary) !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+.MuiInputLabel-root.Mui-focused { color: var(--accent-light) !important; }
+
+/* SWITCH */
+.MuiSwitch-switchBase.Mui-checked { color: var(--accent) !important; }
+.MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: var(--accent) !important;
+}
+
+/* MENU */
+.MuiMenu-paper {
+  background-color: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: var(--text-primary) !important;
+}
+.MuiMenuItem-root {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.875rem !important;
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-sm) !important;
+  margin: 2px 4px !important;
+  padding: 8px 12px !important;
+  transition: var(--transition) !important;
+}
+.MuiMenuItem-root:hover {
+  background-color: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+.MuiMenuItem-root .MuiListItemIcon-root {
+  color: var(--text-secondary) !important;
+  min-width: 36px !important;
+}
+.MuiMenuItem-root:hover .MuiListItemIcon-root { color: var(--accent-light) !important; }
+
+/* DIALOG */
+.MuiDialog-paper {
+  background-color: var(--bg-paper) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: var(--text-primary) !important;
+}
+.MuiDialogTitle-root {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+.MuiDialogContent-root { color: var(--text-secondary) !important; }
+.MuiDialogActions-root { padding: 12px 20px !important; gap: 8px !important; }
+.MuiBackdrop-root {
+  background-color: rgba(0,0,0,0.7) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* LIST */
+.MuiListItem-root .MuiListItemButton-root {
+  border-radius: var(--radius-md) !important;
+  transition: var(--transition) !important;
+}
+.MuiListItem-root .MuiListItemButton-root:hover {
+  background-color: var(--bg-elevated) !important;
+}
+.MuiListItemText-primary {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 500 !important;
+  color: var(--text-primary) !important;
+}
+.MuiListItemText-secondary {
+  font-family: 'Outfit', sans-serif !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ALERT */
+.MuiAlert-root {
+  font-family: 'Outfit', sans-serif !important;
+  border-radius: var(--radius-md) !important;
+}
+.MuiSnackbar-root .MuiPaper-root {
+  background-color: var(--bg-elevated) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* MAIN */
+main.MuiBox-root {
+  background-color: var(--bg-base) !important;
+  color: var(--text-primary) !important;
+}
+
+/* SIDEBAR WIDTHS */
+.drawer-paper-opened { width: var(--sidebar-width-open); }
+.drawer-paper-closed  { width: var(--sidebar-width-closed); }
+
+/* ANIMATIONS */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.3s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* UTILITY */
+.mono {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.82rem !important;
+}
