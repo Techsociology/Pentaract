@@ -1,6 +1,14 @@
 version: "3.9"
 
 volumes:
+  # WARNING: this volume holds ALL Pentaract metadata (users, storages,
+  # file paths, and the mapping from file chunks to Telegram message ids).
+  # Files' bytes live on Telegram, but without this data Pentaract has no
+  # way to find them again -- they become effectively unrecoverable.
+  #
+  # `docker compose down` is safe (containers only). `docker compose down -v`
+  # or `docker volume rm pentaract-db-volume` DELETES this data permanently.
+  # Take a backup first: `make backup` (see Makefile).
   pentaract-db-volume:
     name: pentaract-db-volume
 
