@@ -12,3 +12,6 @@ target/
 .env
 
 .vscode
+
+# Database dumps produced by `make backup` -- contain user data, keep local only
+backups/

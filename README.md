@@ -112,6 +112,24 @@ Login (`POST /api/auth/login`) returns both a short-lived **access token** and a
 - [x] Get file/folder info
 - [x] Delete file/folder
 
+## Backups
+
+All of Pentaract's metadata (users, storages, file paths, and the mapping from file chunks to Telegram message ids) lives in the `pentaract-db-volume` Docker volume. File *bytes* live on Telegram, but without this metadata Pentaract can't find them again, so **losing this volume effectively makes your files unrecoverable**.
+
+`docker compose down` is safe — it only removes containers, not the volume. `docker compose down -v` (or manually deleting the volume) is **not** safe.
+
+Back it up regularly, or before running anything destructive:
+
+```sh
+make backup
+```
+
+This writes a timestamped `pg_dump` to `backups/` (gitignored). Restore with:
+
+```sh
+make restore FILE=backups/pentaract-<timestamp>.sql
+```
+
 ## Access
 
 You can manage access to your storages by granting access to other users. There are 3 possible roles:
