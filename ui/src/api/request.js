@@ -1,5 +1,6 @@
 import { alertStore } from '../components/AlertStack'
 import { setUploadProgress } from '../common/uploadProgress'
+import createLocalStore from '../../libs'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
 
@@ -7,12 +8,53 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
  * @typedef {'get' | 'post' | 'patch' | 'delete'} Method
  */
 
+// Guards against multiple concurrent requests each triggering their own
+// refresh call when the access token expires.
+let refreshInFlight = null
+
+const refreshAccessToken = async () => {
+    const [store, setStore] = createLocalStore()
+    const refresh_token = store.refresh_token
+
+    if (!refresh_token) {
+        return null
+    }
+
+    if (!refreshInFlight) {
+        refreshInFlight = fetch(`${API_BASE}/auth/refresh`, {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token }),
+        })
+            .then(async (res) => {
+                if (!res.ok) return null
+                return await res.json()
+            })
+            .catch(() => null)
+            .finally(() => {
+                refreshInFlight = null
+            })
+    }
+
+    const result = await refreshInFlight
+    if (result?.access_token) {
+        setStore('access_token', result.access_token)
+        return result.access_token
+    }
+
+    // refresh token is invalid/expired: clear session, user must log in again
+    setStore('access_token', undefined)
+    setStore('refresh_token', undefined)
+    return null
+}
+
 const apiRequest = async (
     path,
     method,
     auth_token,
     body,
-    return_response = false
+    return_response = false,
+    _isRetry = false
 ) => {
     const { addAlert } = alertStore
 
@@ -30,6 +72,20 @@ const apiRequest = async (
             body: JSON.stringify(body),
             headers,
         })
+
+        if (response.status === 401 && auth_token && !_isRetry) {
+            const newAccessToken = await refreshAccessToken()
+            if (newAccessToken) {
+                return await apiRequest(
+                    path,
+                    method,
+                    `Bearer ${newAccessToken}`,
+                    body,
+                    return_response,
+                    true
+                )
+            }
+        }
 
         if (!response.ok) {
             throw new Error(await response.text())

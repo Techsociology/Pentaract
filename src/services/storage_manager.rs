@@ -23,10 +23,16 @@ pub struct StorageManagerService<'d> {
     db: &'d PgPool,
     chunk_size: usize,
     rate_limit: u8,
+    max_retries: u8,
 }
 
 impl<'d> StorageManagerService<'d> {
-    pub fn new(db: &'d PgPool, telegram_baseurl: &'d str, rate_limit: u8) -> Self {
+    pub fn new(
+        db: &'d PgPool,
+        telegram_baseurl: &'d str,
+        rate_limit: u8,
+        max_retries: u8,
+    ) -> Self {
         let files_repo = FilesRepository::new(db);
         let storages_repo = StoragesRepository::new(db);
         let chunk_size = 20 * 1024 * 1024;
@@ -37,6 +43,7 @@ impl<'d> StorageManagerService<'d> {
             telegram_baseurl,
             db,
             rate_limit,
+            max_retries,
         }
     }
 
@@ -80,7 +87,7 @@ impl<'d> StorageManagerService<'d> {
     ) -> PentaractResult<FileChunk> {
         let scheduler = StorageWorkersScheduler::new(self.db, self.rate_limit);
 
-        let document = TelegramBotApi::new(self.telegram_baseurl, scheduler)
+        let document = TelegramBotApi::new(self.telegram_baseurl, scheduler, self.max_retries)
             .upload(bytes_chunk, chat_id, storage_id)
             .await?;
 
@@ -121,7 +128,7 @@ impl<'d> StorageManagerService<'d> {
     ) -> PentaractResult<DownloadedChunkSchema> {
         let scheduler = StorageWorkersScheduler::new(self.db, self.rate_limit);
 
-        let file = TelegramBotApi::new(self.telegram_baseurl, scheduler)
+        let file = TelegramBotApi::new(self.telegram_baseurl, scheduler, self.max_retries)
             .download(&chunk.telegram_file_id, storage_id)
             .await
             .map(|data| DownloadedChunkSchema::new(chunk.position, data))?;

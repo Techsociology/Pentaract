@@ -19,6 +19,7 @@ pub struct Config {
 
     pub telegram_api_base_url: String,
     pub telegram_rate_limit: u8,
+    pub telegram_max_retries: u8,
 }
 
 impl Config {
@@ -42,6 +43,7 @@ impl Config {
         let secret_key = Self::get_env_var("SECRET_KEY")?;
         let telegram_api_base_url = Self::get_env_var("TELEGRAM_API_BASE_URL")?;
         let telegram_rate_limit = Self::get_env_var_with_default("TELEGRAM_RATE_LIMIT", 18)?;
+        let telegram_max_retries = Self::get_env_var_with_default("TELEGRAM_MAX_RETRIES", 3)?;
 
         Ok(Self {
             db_uri,
@@ -57,6 +59,7 @@ impl Config {
             secret_key,
             telegram_api_base_url,
             telegram_rate_limit,
+            telegram_max_retries,
         })
     }
 
