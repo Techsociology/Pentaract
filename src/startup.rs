@@ -12,7 +12,9 @@ use crate::{
 
 #[inline]
 pub async fn create_db(dsn: &str, dbname: &str, max_connection: u32, timeout: Duration) {
-    let db = get_pool(dsn, max_connection, timeout).await;
+    let db = get_pool(dsn, max_connection, timeout)
+        .await
+        .expect("can't establish database connection");
 
     tracing::debug!("creating database");
 

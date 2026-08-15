@@ -32,6 +32,7 @@ const Register = () => {
 
         const tokenData = await API.auth.login(email, password)
         setStore('access_token', tokenData.access_token)
+        setStore('refresh_token', tokenData.refresh_token)
 
         const redirect_url = store.redirect || '/'
         navigate(redirect_url)

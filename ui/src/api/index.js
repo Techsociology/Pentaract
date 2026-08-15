@@ -46,9 +46,16 @@ const login = async (email, password) => {
 	})
 }
 
-/////////////////////////////////////////////////////////////
-////  STORAGES
-/////////////////////////////////////////////////////////////
+/**
+ *
+ * @param {string} refresh_token
+ * @returns {Promise<{access_token: string}>}
+ */
+const refresh = async (refresh_token) => {
+	return await apiRequest('/auth/refresh', 'post', undefined, {
+		refresh_token,
+	})
+}
 
 /**
  *
@@ -313,6 +320,7 @@ const API = {
 	},
 	auth: {
 		login,
+		refresh,
 	},
 	storages: {
 		createStorage,

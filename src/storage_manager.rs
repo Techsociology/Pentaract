@@ -44,6 +44,7 @@ impl StorageManager {
             &self.db,
             &self.config.telegram_api_base_url,
             self.config.telegram_rate_limit,
+            self.config.telegram_max_retries,
         )
         .upload(data)
         .await;
@@ -56,6 +57,7 @@ impl StorageManager {
             &self.db,
             &self.config.telegram_api_base_url,
             self.config.telegram_rate_limit,
+            self.config.telegram_max_retries,
         )
         .download(data)
         .await;

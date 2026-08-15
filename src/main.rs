@@ -56,7 +56,8 @@ async fn main() {
         config.workers.into(),
         time::Duration::from_secs(30),
     )
-    .await;
+    .await
+    .expect("can't establish database connection");
 
     // initing db
     init_db(&db).await;
@@ -72,7 +73,8 @@ async fn main() {
             config.workers.into(),
             time::Duration::from_secs(30),
         )
-        .await;
+        .await
+        .expect("can't establish database connection");
         let mut manager = StorageManager::new(rx, db, config_copy);
 
         tracing::debug!("running manager");

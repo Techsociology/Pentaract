@@ -91,10 +91,23 @@ impl FilesRouter {
             let (mut file, mut filename, mut path) = (None, None, None);
 
             // parsing
-            while let Some(field) = multipart.next_field().await.unwrap() {
-                let name = field.name().unwrap().to_owned();
+            while let Some(field) = multipart.next_field().await.map_err(|_| {
+                (
+                    StatusCode::BAD_REQUEST,
+                    "Malformed multipart body".to_owned(),
+                )
+            })? {
+                let name = field
+                    .name()
+                    .ok_or((StatusCode::BAD_REQUEST, "Field name is required".to_owned()))?
+                    .to_owned();
                 let field_filename = field.file_name().unwrap_or("unnamed").to_owned();
-                let data = field.bytes().await.unwrap();
+                let data = field.bytes().await.map_err(|_| {
+                    (
+                        StatusCode::BAD_REQUEST,
+                        "Failed to read field bytes".to_owned(),
+                    )
+                })?;
 
                 match name.as_str() {
                     "file" => {
@@ -102,7 +115,9 @@ impl FilesRouter {
                         filename = Some(field_filename);
                     }
                     "path" => {
-                        let raw_path = String::from_utf8(data.to_vec()).unwrap();
+                        let raw_path = String::from_utf8(data.to_vec()).map_err(|_| {
+                            (StatusCode::BAD_REQUEST, "Path is not valid UTF-8".to_owned())
+                        })?;
                         let decoded = percent_decode_str(&raw_path)
                             .decode_utf8()
                             .unwrap_or(std::borrow::Cow::Borrowed(&raw_path));
@@ -114,9 +129,13 @@ impl FilesRouter {
             }
 
             let file = file.ok_or((StatusCode::BAD_REQUEST, "file file is required".to_owned()))?;
+            let filename = filename.ok_or((
+                StatusCode::BAD_REQUEST,
+                "file filename is required".to_owned(),
+            ))?;
             let path = path
                 .ok_or((StatusCode::BAD_REQUEST, "path file is required".to_owned()))
-                .map(|path| Self::construct_path(&path, &filename.unwrap()))??;
+                .map(|path| Self::construct_path(&path, &filename))??;
             (file, path)
         };
         let size = file.len() as i64;
@@ -139,9 +158,22 @@ impl FilesRouter {
             let mut body_parts = HashMap::with_capacity(IN_FILE_SCHEMA_FIELDS_AMOUNT);
 
             // parsing
-            while let Some(field) = multipart.next_field().await.unwrap() {
-                let name = field.name().unwrap().to_string();
-                let data = field.bytes().await.unwrap();
+            while let Some(field) = multipart.next_field().await.map_err(|_| {
+                (
+                    StatusCode::BAD_REQUEST,
+                    "Malformed multipart body".to_owned(),
+                )
+            })? {
+                let name = field
+                    .name()
+                    .ok_or((StatusCode::BAD_REQUEST, "Field name is required".to_owned()))?
+                    .to_string();
+                let data = field.bytes().await.map_err(|_| {
+                    (
+                        StatusCode::BAD_REQUEST,
+                        "Failed to read field bytes".to_owned(),
+                    )
+                })?;
                 body_parts.insert(name, data);
             }
 

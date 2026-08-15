@@ -367,7 +367,7 @@ impl<'d> FilesRepository<'d> {
         .map_err(|e| map_not_found(e, "file"))?;
 
         // creating a folder if it was the file in the folder
-        if let Some(parent) = Path::new(path).parent().map(|path| path.to_str().unwrap()) {
+        if let Some(parent) = Path::new(path).parent().and_then(|path| path.to_str()) {
             let new_id = Uuid::new_v4();
             let parent = format!("{parent}/");
 

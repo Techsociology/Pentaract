@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use reqwest::multipart;
 use uuid::Uuid;
 
@@ -12,14 +14,49 @@ use super::schemas::{DownloadBodySchema, UploadBodySchema, UploadSchema};
 pub struct TelegramBotApi<'t> {
     base_url: &'t str,
     scheduler: StorageWorkersScheduler<'t>,
+    max_retries: u8,
 }
 
 impl<'t> TelegramBotApi<'t> {
-    pub fn new(base_url: &'t str, scheduler: StorageWorkersScheduler<'t>) -> Self {
+    pub fn new(base_url: &'t str, scheduler: StorageWorkersScheduler<'t>, max_retries: u8) -> Self {
         Self {
             base_url,
             scheduler,
+            max_retries,
         }
+    }
+
+    /// Runs `f` up to `self.max_retries + 1` times, retrying on transport-level
+    /// errors and 5xx responses with a short exponential backoff. Client errors
+    /// (4xx, bad payloads) are not retried since retrying won't fix them.
+    async fn with_retries<T, F, Fut>(&self, mut f: F) -> PentaractResult<T>
+    where
+        F: FnMut() -> Fut,
+        Fut: std::future::Future<Output = PentaractResult<T>>,
+    {
+        let mut attempt = 0u8;
+        loop {
+            match f().await {
+                Ok(v) => return Ok(v),
+                Err(e) if attempt < self.max_retries && Self::is_retryable(&e) => {
+                    attempt += 1;
+                    let backoff_ms = 200u64 * (1 << (attempt - 1)); // 200ms, 400ms, 800ms, ...
+                    tracing::warn!(
+                        "[TELEGRAM API] attempt {attempt}/{} failed, retrying in {backoff_ms}ms: {e}",
+                        self.max_retries
+                    );
+                    tokio::time::sleep(Duration::from_millis(backoff_ms)).await;
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
+    fn is_retryable(e: &PentaractError) -> bool {
+        // Telegram 5xx / network hiccups are worth retrying; explicit 4xx-style
+        // API errors (bad chat id, bad token, etc.) are not.
+        matches!(e, PentaractError::TelegramAPIError(msg) if msg.starts_with("Status 5"))
+            || matches!(e, PentaractError::Unknown)
     }
 
     pub async fn upload(
@@ -42,42 +79,48 @@ impl<'t> TelegramBotApi<'t> {
             );
         }
 
-        let token = self.scheduler.get_token(storage_id).await?;
-        let url = self.build_url("", "sendDocument", token);
+        self.with_retries(|| async {
+            let token = self.scheduler.get_token(storage_id).await?;
+            let url = self.build_url("", "sendDocument", token);
 
-        let file_part = multipart::Part::bytes(file.to_vec()).file_name("pentaract_chunk.bin");
-        let form = multipart::Form::new()
-            .text("chat_id", chat_id.to_string())
-            .part("document", file_part);
+            let file_part =
+                multipart::Part::bytes(file.to_vec()).file_name("pentaract_chunk.bin");
+            let form = multipart::Form::new()
+                .text("chat_id", chat_id.to_string())
+                .part("document", file_part);
 
-        let response = reqwest::Client::new()
-            .post(url)
-            .multipart(form)
-            .send()
-            .await?;
+            let response = reqwest::Client::new()
+                .post(url)
+                .multipart(form)
+                .send()
+                .await?;
 
-        let status = response.status();
-        if !status.is_success() {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unable to read error body".to_string());
-            tracing::error!(
-                "[TELEGRAM API] Upload failed: status={}, response={}",
-                status,
-                error_text
-            );
-            return Err(PentaractError::TelegramAPIError(format!(
-                "Status {}: {}",
-                status,
-                error_text
-            )));
-        }
-
-        match response.json::<UploadBodySchema>().await {
-            Ok(body) => Ok(body.result.document),
-            Err(e) => {
-                tracing::error!("[TELEGRAM API] Failed to parse response: {}", e);
-                Err(e.into())
+            let status = response.status();
+            if !status.is_success() {
+                let error_text = response
+                    .text()
+                    .await
+                    .unwrap_or_else(|_| "Unable to read error body".to_string());
+                tracing::error!(
+                    "[TELEGRAM API] Upload failed: status={}, response={}",
+                    status,
+                    error_text
+                );
+                return Err(PentaractError::TelegramAPIError(format!(
+                    "Status {}: {}",
+                    status, error_text
+                )));
             }
-        }
+
+            match response.json::<UploadBodySchema>().await {
+                Ok(body) => Ok(body.result.document),
+                Err(e) => {
+                    tracing::error!("[TELEGRAM API] Failed to parse response: {}", e);
+                    Err(e.into())
+                }
+            }
+        })
+        .await
     }
 
     pub async fn download(
@@ -85,28 +128,30 @@ impl<'t> TelegramBotApi<'t> {
         telegram_file_id: &str,
         storage_id: Uuid,
     ) -> PentaractResult<Vec<u8>> {
-        // getting file path
-        let token = self.scheduler.get_token(storage_id).await?;
-        let url = self.build_url("", "getFile", token);
-        // TODO: add retries with their number taking from env
-        let body: DownloadBodySchema = reqwest::Client::new()
-            .get(url)
-            .query(&[("file_id", telegram_file_id)])
-            .send()
-            .await?
-            .json()
-            .await?;
+        self.with_retries(|| async {
+            // getting file path
+            let token = self.scheduler.get_token(storage_id).await?;
+            let url = self.build_url("", "getFile", token);
+            let body: DownloadBodySchema = reqwest::Client::new()
+                .get(url)
+                .query(&[("file_id", telegram_file_id)])
+                .send()
+                .await?
+                .json()
+                .await?;
 
-        // downloading the file itself
-        let token = self.scheduler.get_token(storage_id).await?;
-        let url = self.build_url("file/", &body.result.file_path, token);
-        let file = reqwest::get(url)
-            .await?
-            .bytes()
-            .await
-            .map(|file| file.to_vec())?;
+            // downloading the file itself
+            let token = self.scheduler.get_token(storage_id).await?;
+            let url = self.build_url("file/", &body.result.file_path, token);
+            let file = reqwest::get(url)
+                .await?
+                .bytes()
+                .await
+                .map(|file| file.to_vec())?;
 
-        Ok(file)
+            Ok(file)
+        })
+        .await
     }
 
     /// Taking token by a value to force dropping it so it can be used only once
