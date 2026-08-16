@@ -15,6 +15,7 @@ import { useNavigate } from '@solidjs/router'
 
 import API from '../../api'
 import { convertSize } from '../../common/size_converter'
+import StorageOverview from '../../components/StorageOverview'
 
 const Storages = () => {
     const [storages, setStorages] = createSignal([])
@@ -63,6 +64,10 @@ const Storages = () => {
                     Register storage
                 </Button>
             </Box>
+
+            <Show when={storages().length}>
+                <StorageOverview storages={storages()} />
+            </Show>
 
             {/* Table */}
             <Show

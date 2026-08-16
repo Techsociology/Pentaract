@@ -1,0 +1,22 @@
+# Version control
+.git
+.gitignore
+
+# Rust build artifacts (recompiled inside the image anyway)
+target/
+debug/
+
+# UI build artifacts / deps (reinstalled/rebuilt inside the image anyway)
+ui/node_modules/
+ui/dist/
+ui/.solid/
+
+# Env & secrets
+.env
+backups/
+
+# Editor/OS cruft
+.vscode/
+.idea/
+*.rs.bk
+.DS_Store

@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 ############################################################################################
 ####  SERVER
 ############################################################################################
@@ -6,7 +8,8 @@
 # the official Rust toolchain
 FROM clux/muslrust:stable AS chef
 USER root
-RUN cargo install cargo-chef
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    cargo install cargo-chef
 WORKDIR /app
 
 FROM chef AS planner
@@ -20,20 +23,32 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder 
 COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
+# Cache mounts persist the cargo registry and the incremental build
+# artifacts across builds (not just across Docker layers), so a change
+# to src/ doesn't force every dependency to recompile from scratch.
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
 # Build application
 COPY ./ .
-RUN cargo build --target x86_64-unknown-linux-musl --release
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --target x86_64-unknown-linux-musl --release && \
+    cp /app/target/x86_64-unknown-linux-musl/release/pentaract /app/pentaract
 
 ############################################################################################
 ####  UI
 ############################################################################################
 
-FROM node:21-slim AS ui
+FROM node:22-slim AS ui
 WORKDIR /app
+RUN npm install -g pnpm@9
+# Copy only lockfile/manifest first so `pnpm i` is cached separately from
+# source changes -- editing a .jsx file shouldn't force a full reinstall.
+COPY ./ui/package.json ./ui/pnpm-lock.yaml ./
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm i --frozen-lockfile
 COPY ./ui .
-RUN npm install -g pnpm
-RUN npx pnpm i
 ENV VITE_API_BASE /api
 RUN pnpm build
 
@@ -43,7 +58,7 @@ RUN pnpm build
 
 # We do not need the Rust toolchain to run the binary!
 FROM scratch AS runtime
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/pentaract /
+COPY --from=builder /app/pentaract /
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=ui /app/dist /ui
 ENTRYPOINT ["/pentaract"]
