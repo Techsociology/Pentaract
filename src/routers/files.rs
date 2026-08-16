@@ -261,7 +261,7 @@ impl FilesRouter {
 
                 (headers, body).into_response()
             })
-            .map_err(|e| <(StatusCode, String)>::from(e))
+            .map_err(<(StatusCode, String)>::from)
     }
 
     ///
@@ -278,7 +278,7 @@ impl FilesRouter {
             .search(storage_id, path, search_path, &user)
             .await
             .map(|files| Json(files).into_response())
-            .map_err(|e| <(StatusCode, String)>::from(e))
+            .map_err(<(StatusCode, String)>::from)
     }
 
     async fn delete(
@@ -289,7 +289,7 @@ impl FilesRouter {
         FilesService::new(&state.db, state.tx.clone())
             .delete(&path, storage_id, &user)
             .await
-            .map_err(|e| <(StatusCode, String)>::from(e))?;
+            .map_err(<(StatusCode, String)>::from)?;
 
         Ok(())
     }

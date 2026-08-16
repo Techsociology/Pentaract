@@ -16,6 +16,9 @@ impl InFile {
     }
 }
 
+// FromRow-mapped struct: most fields aren't read individually yet (only
+// used via query results / Debug), but they mirror the DB schema.
+#[allow(dead_code)]
 #[derive(Debug, sqlx::FromRow)]
 pub struct File {
     pub id: uuid::Uuid,

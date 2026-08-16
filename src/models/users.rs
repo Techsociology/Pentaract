@@ -12,6 +12,8 @@ impl InDBUser {
     }
 }
 
+// FromRow-mapped struct; `email` is currently only surfaced via Debug/logging
+#[allow(dead_code)]
 #[derive(Debug, sqlx::FromRow)]
 pub struct User {
     pub id: uuid::Uuid,

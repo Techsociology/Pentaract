@@ -165,9 +165,8 @@ pub async fn init_db(db: &PgPool) {
         sqlx::query(statement)
             .execute(&mut *transaction)
             .await
-            .map_err(|e| {
+            .inspect_err(|_| {
                 tracing::error!("error during initing database with query:\n{statement}");
-                e
             })
             .unwrap();
     }
@@ -179,13 +178,13 @@ pub async fn init_db(db: &PgPool) {
 pub async fn create_superuser(db: &PgPool, config: &Config) {
     let password_hash = PasswordManager::generate(&config.superuser_pass).unwrap();
     let user = InDBUser::new(config.superuser_email.clone(), password_hash);
-    let result = UsersRepository::new(&db).create(user).await;
+    let result = UsersRepository::new(db).create(user).await;
 
     match result {
         Ok(_) => tracing::debug!("created superuser"),
 
         // ignoring conflict error -> just skipping it
-        Err(e) if matches!(e, PentaractError::AlreadyExists(_)) => {
+        Err(PentaractError::AlreadyExists(_)) => {
             tracing::debug!("superuser already exists; skipping")
         }
 

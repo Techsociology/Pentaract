@@ -88,7 +88,7 @@ impl<'d> FilesService<'d> {
         .await?;
 
         // 1. check whether storage got workers
-        Self::check_storage_workers(&self, in_schema.storage_id).await?;
+        Self::check_storage_workers(self, in_schema.storage_id).await?;
 
         // 2. path validation
         if !Self::validate_filepath(&in_schema.path) {
@@ -119,7 +119,7 @@ impl<'d> FilesService<'d> {
         .await?;
 
         // 1. check whether storage got workers
-        Self::check_storage_workers(&self, in_file.storage_id).await?;
+        Self::check_storage_workers(self, in_file.storage_id).await?;
 
         // 2. saving file in db
         let file = self.repo.create_file_anyway(in_file).await?;
@@ -245,6 +245,8 @@ impl<'d> FilesService<'d> {
         self.repo.search(search_path, path, storage_id).await
     }
 
+    // Not yet exposed via a router endpoint; kept for the planned rename feature.
+    #[allow(dead_code)]
     pub async fn rename(
         &self,
         old_path: &str,

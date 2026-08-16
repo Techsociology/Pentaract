@@ -47,7 +47,7 @@ impl Server {
                 "/storage_workers",
                 StorageWorkersRouter::get_router(app_state.clone()),
             )
-            .layer(ConcurrencyLimitLayer::new(workers.into()))
+            .layer(ConcurrencyLimitLayer::new(workers))
             .layer(app_cors)
     }
 
