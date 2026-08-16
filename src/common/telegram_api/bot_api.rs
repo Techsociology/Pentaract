@@ -55,7 +55,7 @@ impl<'t> TelegramBotApi<'t> {
     fn is_retryable(e: &PentaractError) -> bool {
         // Telegram 5xx / network hiccups are worth retrying; explicit 4xx-style
         // API errors (bad chat id, bad token, etc.) are not.
-        matches!(e, PentaractError::TelegramAPIError(msg) if msg.starts_with("Status 5"))
+        matches!(e, PentaractError::TelegramAPIError { status, .. } if (500..600).contains(status))
             || matches!(e, PentaractError::Unknown)
     }
 
@@ -83,8 +83,7 @@ impl<'t> TelegramBotApi<'t> {
             let token = self.scheduler.get_token(storage_id).await?;
             let url = self.build_url("", "sendDocument", token);
 
-            let file_part =
-                multipart::Part::bytes(file.to_vec()).file_name("pentaract_chunk.bin");
+            let file_part = multipart::Part::bytes(file.to_vec()).file_name("pentaract_chunk.bin");
             let form = multipart::Form::new()
                 .text("chat_id", chat_id.to_string())
                 .part("document", file_part);
@@ -106,10 +105,10 @@ impl<'t> TelegramBotApi<'t> {
                     status,
                     error_text
                 );
-                return Err(PentaractError::TelegramAPIError(format!(
-                    "Status {}: {}",
-                    status, error_text
-                )));
+                return Err(PentaractError::TelegramAPIError {
+                    status: status.as_u16(),
+                    message: error_text,
+                });
             }
 
             match response.json::<UploadBodySchema>().await {

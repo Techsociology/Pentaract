@@ -116,7 +116,10 @@ impl FilesRouter {
                     }
                     "path" => {
                         let raw_path = String::from_utf8(data.to_vec()).map_err(|_| {
-                            (StatusCode::BAD_REQUEST, "Path is not valid UTF-8".to_owned())
+                            (
+                                StatusCode::BAD_REQUEST,
+                                "Path is not valid UTF-8".to_owned(),
+                            )
                         })?;
                         let decoded = percent_decode_str(&raw_path)
                             .decode_utf8()

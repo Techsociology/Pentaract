@@ -46,11 +46,8 @@ impl<'d> StoragesRepository<'d> {
     }
 
     pub async fn list_by_user_id(&self, user_id: Uuid) -> PentaractResult<Vec<StorageWithInfo>> {
-        tracing::debug!(
-            "[STORAGES REPO] Fetching storages for user_id={}",
-            user_id
-        );
-        
+        tracing::debug!("[STORAGES REPO] Fetching storages for user_id={}", user_id);
+
         let result = sqlx::query_as(
             format!(
                 "
@@ -68,13 +65,13 @@ impl<'d> StoragesRepository<'d> {
         .fetch_all(self.db)
         .await
         .map_err(|e| map_not_found(e, "storages"))?;
-        
+
         tracing::debug!(
             "[STORAGES REPO] Found {} storages for user_id={}",
             result.len(),
             user_id
         );
-        
+
         Ok(result)
     }
 

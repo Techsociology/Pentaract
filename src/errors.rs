@@ -25,8 +25,8 @@ pub enum PentaractError {
     StorageWorkerTokenConflict,
     #[error("not authenticated")]
     NotAuthenticated,
-    #[error("[Telegram API] {0}")]
-    TelegramAPIError(String),
+    #[error("[Telegram API] status {status}: {message}")]
+    TelegramAPIError { status: u16, message: String },
     #[error("You need to add at least 1 storage worker")]
     NoStorageWorkers,
     #[error("Invalid path")]
@@ -74,7 +74,10 @@ impl From<PentaractError> for (StatusCode, String) {
 impl From<reqwest::Error> for PentaractError {
     fn from(e: reqwest::Error) -> Self {
         match e.status() {
-            Some(e) if e.is_client_error() => PentaractError::TelegramAPIError(e.to_string()),
+            Some(status) if status.is_client_error() => PentaractError::TelegramAPIError {
+                status: status.as_u16(),
+                message: e.to_string(),
+            },
             Some(_) | None => {
                 tracing::error!("{e}");
                 PentaractError::Unknown

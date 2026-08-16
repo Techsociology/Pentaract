@@ -55,7 +55,10 @@ impl JWTManager {
         let expire_date = SystemTime::now() + expire_in;
         let expire_timestamp = expire_date
             .duration_since(UNIX_EPOCH)
-            .map_err(|_| PentaractError::Unknown)?
+            .map_err(|err| {
+                tracing::error!("[JWT] failed to compute expiration timestamp: {err}");
+                PentaractError::Unknown
+            })?
             .as_secs() as usize;
         let claims = Claims {
             sub: user.id.into(),
@@ -65,11 +68,18 @@ impl JWTManager {
         };
         let key = EncodingKey::from_secret(secret_key.as_bytes());
 
-        encode(&Header::default(), &claims, &key).map_err(|_| PentaractError::Unknown)
+        encode(&Header::default(), &claims, &key).map_err(|err| {
+            tracing::error!("[JWT] failed to encode token: {err}");
+            PentaractError::Unknown
+        })
     }
 
     /// Generates a short-lived access token
-    pub fn generate(user: AuthUser, expire_in: Duration, secret_key: &str) -> PentaractResult<String> {
+    pub fn generate(
+        user: AuthUser,
+        expire_in: Duration,
+        secret_key: &str,
+    ) -> PentaractResult<String> {
         Self::generate_typed(&user, expire_in, secret_key, TokenType::Access)
     }
 
@@ -82,7 +92,11 @@ impl JWTManager {
         Self::generate_typed(&user, expire_in, secret_key, TokenType::Refresh)
     }
 
-    fn validate_typed(token: &str, secret_key: &str, expected: TokenType) -> PentaractResult<AuthUser> {
+    fn validate_typed(
+        token: &str,
+        secret_key: &str,
+        expected: TokenType,
+    ) -> PentaractResult<AuthUser> {
         let validation = Validation::new(Algorithm::HS256);
         let decoding_key = DecodingKey::from_secret(secret_key.as_bytes());
 

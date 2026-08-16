@@ -44,7 +44,7 @@ impl<'d> StoragesService<'d> {
         // creating storage
         let in_model = InStorage::new(in_schema.name, in_schema.chat_id);
         let storage = self.repo.create(in_model).await?;
-        
+
         tracing::debug!(
             "[STORAGES SERVICE] Created storage id={}, name={}, chat_id={}",
             storage.id,
@@ -58,7 +58,7 @@ impl<'d> StoragesService<'d> {
             .access_repo
             .create_or_update(storage.id, access_schema)
             .await;
-        
+
         match &result {
             Ok(_) => {
                 tracing::debug!(
