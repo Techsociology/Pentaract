@@ -1,5 +1,3 @@
-version: "3.9"
-
 volumes:
   # WARNING: this volume holds ALL Pentaract metadata (users, storages,
   # file paths, and the mapping from file chunks to Telegram message ids).

@@ -23,6 +23,7 @@ import CreateFolderDialog from '../../components/CreateFolderDialog'
 import { alertStore } from '../../components/AlertStack'
 import Access from '../../components/Access'
 import GrantAccess from '../../components/GrantAccess'
+import PathBreadcrumbs from '../../components/PathBreadcrumbs'
 
 const Files = () => {
     const { addAlert } = alertStore
@@ -33,6 +34,7 @@ const Files = () => {
     const [isGrantAccessButtonVisible, setIsGrantButtonAccessVisible] = createSignal(false)
     const [isGrantAccessVisible, setIsGrantAccessVisible] = createSignal(false)
     const [users, setUsers] = createSignal([])
+    const [isDragOver, setIsDragOver] = createSignal(false)
     const navigate = useNavigate()
     const params = useParams()
     const basePath = `/storages/${params.id}/files`
@@ -98,17 +100,94 @@ const Files = () => {
 
     const uploadFileClickHandler = () => uploadFileInputElement.click()
 
-    const uploadFile = async (event) => {
-        const file = event.target.files[0]
-        if (file === undefined) return
-        event.target.value = null
+    const doUpload = async (file) => {
+        if (!file) return
         await API.files.uploadFile(params.id, params.path, file)
         addAlert(`Uploaded file "${file.name}"`, 'success')
         await fetchFSLayer()
     }
 
+    const uploadFile = async (event) => {
+        const file = event.target.files[0]
+        event.target.value = null
+        await doUpload(file)
+    }
+
+    let dragCounter = 0
+
+    const handleDragEnter = (event) => {
+        event.preventDefault()
+        if (isAccessPage()) return
+        dragCounter++
+        if (event.dataTransfer?.types?.includes('Files')) {
+            setIsDragOver(true)
+        }
+    }
+
+    const handleDragOver = (event) => {
+        event.preventDefault()
+    }
+
+    const handleDragLeave = (event) => {
+        event.preventDefault()
+        dragCounter = Math.max(0, dragCounter - 1)
+        if (dragCounter === 0) setIsDragOver(false)
+    }
+
+    const handleDrop = async (event) => {
+        event.preventDefault()
+        dragCounter = 0
+        setIsDragOver(false)
+        if (isAccessPage()) return
+
+        const files = Array.from(event.dataTransfer?.files || [])
+        if (!files.length) return
+
+        // Upload sequentially so progress reporting stays meaningful per-file
+        for (const file of files) {
+            await doUpload(file)
+        }
+    }
+
     return (
-        <Box sx={{ animation: 'fadeInUp 0.3s cubic-bezier(0.4,0,0.2,1) both' }}>
+        <Box
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            sx={{ animation: 'fadeInUp 0.3s cubic-bezier(0.4,0,0.2,1) both', position: 'relative' }}
+        >
+            <Show when={isDragOver()}>
+                <Box sx={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 1300,
+                    bgcolor: 'rgba(0,0,0,0.45)',
+                    backdropFilter: 'blur(2px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                }}>
+                    <Box sx={{
+                        border: '2px dashed var(--accent-light)',
+                        borderRadius: 'var(--radius-lg)',
+                        bgcolor: 'var(--bg-paper)',
+                        px: 6,
+                        py: 5,
+                        textAlign: 'center',
+                    }}>
+                        <UploadFileIcon sx={{ fontSize: '2.5rem', color: 'var(--accent-light) !important', mb: 1 }} />
+                        <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary) !important' }}>
+                            Drop to upload
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.8rem', color: 'var(--text-secondary) !important', mt: 0.5 }}>
+                            Files will be added to the current folder
+                        </Typography>
+                    </Box>
+                </Box>
+            </Show>
+
             {/* Page header */}
             <Box sx={{
                 display: 'flex',
@@ -206,6 +285,8 @@ const Files = () => {
                     />
                 }
             >
+                <PathBreadcrumbs path={params.path} basePath={basePath} />
+
                 <Box sx={{
                     bgcolor: 'var(--bg-paper)',
                     border: '1px solid var(--border)',

@@ -19,6 +19,7 @@ import { useNavigate, useParams } from '@solidjs/router'
 import API from '../api'
 import ActionConfirmDialog from './ActionConfirmDialog'
 import FileInfoDialog from './FileInfo'
+import { getFileTypeVisuals } from '../common/file_type_icons'
 
 const FSListItem = (props) => {
     const [moreAnchorEl, setMoreAnchorEl] = createSignal(null)
@@ -97,7 +98,10 @@ const FSListItem = (props) => {
                                     color: isBack ? 'var(--text-muted) !important' : '#fbbf24 !important',
                                 }} />
                             }>
-                                <FileIcon sx={{ fontSize: '1.05rem', color: 'var(--accent-light) !important' }} />
+                                {(() => {
+                                    const { icon: TypeIcon, color } = getFileTypeVisuals(props.fsElement.name)
+                                    return <TypeIcon sx={{ fontSize: '1.05rem', color: `${color} !important` }} />
+                                })()}
                             </Show>
                         </Box>
                     </ListItemIcon>

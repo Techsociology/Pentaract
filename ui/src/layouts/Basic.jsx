@@ -2,6 +2,7 @@ import { onMount } from 'solid-js'
 import { Outlet } from '@solidjs/router'
 import Header from '../components/Header'
 import SideBar from '../components/SideBar'
+import UploadProgressBar from '../components/UploadProgressBar'
 import Box from '@suid/material/Box'
 import Container from '@suid/material/Container'
 import CssBaseline from '@suid/material/CssBaseline'
@@ -16,6 +17,7 @@ const BasicLayout = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <CssBaseline />
             <Header />
+            <UploadProgressBar />
             <Toolbar sx={{ minHeight: '60px !important', height: '60px' }} />
 
             <Box sx={{ display: 'flex', flexGrow: 1 }}>
