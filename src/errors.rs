@@ -39,6 +39,8 @@ pub enum PentaractError {
     StorageDoesNotHaveWorkers,
     #[error("unknown error")]
     Unknown,
+    #[error("[Telegram API] failed to parse response: {0}")]
+    TelegramResponseDecodeError(String),
     #[error("{0} header is required")]
     HeaderMissed(String),
     #[error("{0} header should be a valid {1}")]
@@ -78,6 +80,12 @@ impl From<reqwest::Error> for PentaractError {
                 status: status.as_u16(),
                 message: e.to_string(),
             },
+            // Malformed/unexpected response body: retrying the same request
+            // won't produce a different body, so this is not transient.
+            _ if e.is_decode() || e.is_body() => {
+                tracing::error!("{e}");
+                PentaractError::TelegramResponseDecodeError(e.to_string())
+            }
             Some(_) | None => {
                 tracing::error!("{e}");
                 PentaractError::Unknown

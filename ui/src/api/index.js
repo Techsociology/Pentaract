@@ -47,6 +47,15 @@ const login = async (email, password) => {
 }
 
 /**
+ * Manually exchange a refresh token for a new access token.
+ *
+ * NOTE: this is a thin, explicit wrapper for callers who want to trigger a
+ * refresh directly. The automatic on-401 refresh flow used internally by
+ * apiRequest (see request.js's refreshAccessToken) intentionally does NOT
+ * call this -- it talks to /auth/refresh directly so a failed refresh
+ * doesn't also trigger apiRequest's generic error alert on top of the
+ * dedicated "session expired" message. Keep both in sync with the backend
+ * contract (POST /auth/refresh, body { refresh_token }) if it ever changes.
  *
  * @param {string} refresh_token
  * @returns {Promise<{access_token: string}>}

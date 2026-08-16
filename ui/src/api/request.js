@@ -21,6 +21,11 @@ const refreshAccessToken = async () => {
     }
 
     if (!refreshInFlight) {
+        // Deliberately NOT routed through apiRequest: apiRequest's generic
+        // error handler fires its own addAlert on any non-2xx response, which
+        // would double up with the dedicated "session expired" alert below
+        // for the (common) case of an expired/invalid refresh token. This is
+        // the one call site allowed to talk to the API directly for that reason.
         refreshInFlight = fetch(`${API_BASE}/auth/refresh`, {
             method: 'post',
             headers: { 'Content-Type': 'application/json' },
@@ -92,6 +97,13 @@ const apiRequest = async (
                     true
                 )
             }
+
+            // Refresh failed: refreshAccessToken already cleared the session
+            // and redirected to /login. Short-circuit here instead of falling
+            // through to the "!response.ok" branch below, which would throw
+            // on the original 401 and surface a redundant error alert on top
+            // of the redirect that's already happening.
+            return
         }
 
         if (!response.ok) {

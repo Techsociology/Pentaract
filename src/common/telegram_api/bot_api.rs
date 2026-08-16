@@ -44,7 +44,11 @@ impl<'t> TelegramBotApi<'t> {
                     // Rate limiting gets a longer base backoff than transient
                     // 5xx/network errors, since bursting again immediately just
                     // trips the limit again.
-                    let base_ms = if Self::is_rate_limited(&e) { 1000u64 } else { 200u64 };
+                    let base_ms = if Self::is_rate_limited(&e) {
+                        1000u64
+                    } else {
+                        200u64
+                    };
                     let backoff_ms = (base_ms * (1 << (attempt - 1))).min(30_000);
                     tracing::warn!(
                         "[TELEGRAM API] attempt {attempt}/{} failed, retrying in {backoff_ms}ms: {e}",
@@ -60,7 +64,8 @@ impl<'t> TelegramBotApi<'t> {
     fn is_retryable(e: &PentaractError) -> bool {
         // Telegram 5xx / network hiccups / rate limiting are worth retrying;
         // other explicit 4xx-style API errors (bad chat id, bad token, etc.)
-        // are not.
+        // and malformed-response decode errors are not -- retrying gets the
+        // same result.
         match e {
             PentaractError::TelegramAPIError { status, .. } => {
                 (500..600).contains(status) || *status == 429
@@ -106,7 +111,8 @@ impl<'t> TelegramBotApi<'t> {
             let token = self.scheduler.get_token(storage_id).await?;
             let url = self.build_url("", "sendDocument", token);
 
-            let file_part = multipart::Part::bytes(file_buf.clone()).file_name("pentaract_chunk.bin");
+            let file_part =
+                multipart::Part::bytes(file_buf.clone()).file_name("pentaract_chunk.bin");
             let form = multipart::Form::new()
                 .text("chat_id", chat_id.to_string())
                 .part("document", file_part);
@@ -136,10 +142,8 @@ impl<'t> TelegramBotApi<'t> {
 
             match response.json::<UploadBodySchema>().await {
                 Ok(body) => Ok(body.result.document),
-                Err(e) => {
-                    tracing::error!("[TELEGRAM API] Failed to parse response: {}", e);
-                    Err(e.into())
-                }
+                // The From<reqwest::Error> impl already logs decode failures.
+                Err(e) => Err(e.into()),
             }
         })
         .await
