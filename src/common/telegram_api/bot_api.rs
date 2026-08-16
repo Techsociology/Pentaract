@@ -27,8 +27,9 @@ impl<'t> TelegramBotApi<'t> {
     }
 
     /// Runs `f` up to `self.max_retries + 1` times, retrying on transport-level
-    /// errors and 5xx responses with a short exponential backoff. Client errors
-    /// (4xx, bad payloads) are not retried since retrying won't fix them.
+    /// errors, 5xx responses, and 429 (rate limit) with backoff. Other 4xx-style
+    /// API errors (bad chat id, bad token, etc.) are not retried since retrying
+    /// won't fix them.
     async fn with_retries<T, F, Fut>(&self, mut f: F) -> PentaractResult<T>
     where
         F: FnMut() -> Fut,
@@ -40,7 +41,11 @@ impl<'t> TelegramBotApi<'t> {
                 Ok(v) => return Ok(v),
                 Err(e) if attempt < self.max_retries && Self::is_retryable(&e) => {
                     attempt += 1;
-                    let backoff_ms = 200u64 * (1 << (attempt - 1)); // 200ms, 400ms, 800ms, ...
+                    // Rate limiting gets a longer base backoff than transient
+                    // 5xx/network errors, since bursting again immediately just
+                    // trips the limit again.
+                    let base_ms = if Self::is_rate_limited(&e) { 1000u64 } else { 200u64 };
+                    let backoff_ms = (base_ms * (1 << (attempt - 1))).min(30_000);
                     tracing::warn!(
                         "[TELEGRAM API] attempt {attempt}/{} failed, retrying in {backoff_ms}ms: {e}",
                         self.max_retries
@@ -53,10 +58,20 @@ impl<'t> TelegramBotApi<'t> {
     }
 
     fn is_retryable(e: &PentaractError) -> bool {
-        // Telegram 5xx / network hiccups are worth retrying; explicit 4xx-style
-        // API errors (bad chat id, bad token, etc.) are not.
-        matches!(e, PentaractError::TelegramAPIError { status, .. } if (500..600).contains(status))
-            || matches!(e, PentaractError::Unknown)
+        // Telegram 5xx / network hiccups / rate limiting are worth retrying;
+        // other explicit 4xx-style API errors (bad chat id, bad token, etc.)
+        // are not.
+        match e {
+            PentaractError::TelegramAPIError { status, .. } => {
+                (500..600).contains(status) || *status == 429
+            }
+            PentaractError::Unknown => true,
+            _ => false,
+        }
+    }
+
+    fn is_rate_limited(e: &PentaractError) -> bool {
+        matches!(e, PentaractError::TelegramAPIError { status, .. } if *status == 429)
     }
 
     pub async fn upload(
@@ -79,11 +94,19 @@ impl<'t> TelegramBotApi<'t> {
             );
         }
 
+        // Build the owned buffer once outside the retry loop; each attempt just
+        // clones this Vec instead of re-deriving it from `file` on every retry.
+        // (A true zero-copy version would need reqwest's "stream" feature to hand
+        // multipart::Part a ref-counted `bytes::Bytes` instead of an owned Vec --
+        // not enabled here, so this only avoids the redundant re-conversion, not
+        // the unavoidable per-attempt copy multipart::Form requires.)
+        let file_buf = file.to_vec();
+
         self.with_retries(|| async {
             let token = self.scheduler.get_token(storage_id).await?;
             let url = self.build_url("", "sendDocument", token);
 
-            let file_part = multipart::Part::bytes(file.to_vec()).file_name("pentaract_chunk.bin");
+            let file_part = multipart::Part::bytes(file_buf.clone()).file_name("pentaract_chunk.bin");
             let form = multipart::Form::new()
                 .text("chat_id", chat_id.to_string())
                 .part("document", file_part);

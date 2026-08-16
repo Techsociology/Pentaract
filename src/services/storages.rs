@@ -33,10 +33,11 @@ impl<'d> StoragesService<'d> {
         user: &AuthUser,
     ) -> PentaractResult<Storage> {
         // checking if user already has a storage with such name
-        if let Ok(_) = self
+        if self
             .repo
             .get_by_name_and_user_id(&in_schema.name, user.id)
             .await
+            .is_ok()
         {
             return Err(PentaractError::StorageNameConflict);
         }

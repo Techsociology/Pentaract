@@ -65,7 +65,7 @@ impl StoragesRouter {
         let storages = StoragesService::new(&state.db)
             .list(&user)
             .await
-            .map(|s| StoragesListSchema::new(s))?;
+            .map(StoragesListSchema::new)?;
         tracing::debug!(
             "[STORAGES ROUTER] Returning {} storages to client",
             storages.storages.len()

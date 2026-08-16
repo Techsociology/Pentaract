@@ -24,7 +24,7 @@ pub async fn logged_in_required<B>(
     next: Next<B>,
 ) -> Result<Response, (StatusCode, String)> {
     let auth_user = authenticate(req.headers(), &state.config.secret_key)
-        .map_err(|e| <(StatusCode, String)>::from(e))?;
+        .map_err(<(StatusCode, String)>::from)?;
 
     req.extensions_mut().insert(auth_user);
     Ok(next.run(req).await)

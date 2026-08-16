@@ -101,9 +101,26 @@ impl JWTManager {
         let decoding_key = DecodingKey::from_secret(secret_key.as_bytes());
 
         decode::<Claims>(token, &decoding_key, &validation)
-            .map_err(|_| PentaractError::NotAuthenticated)
+            .map_err(|err| {
+                use jsonwebtoken::errors::ErrorKind;
+                match err.kind() {
+                    ErrorKind::ExpiredSignature => {
+                        tracing::debug!("[JWT] validation failed: expired token");
+                    }
+                    ErrorKind::InvalidSignature => {
+                        tracing::warn!("[JWT] validation failed: invalid signature");
+                    }
+                    other => {
+                        tracing::warn!("[JWT] validation failed: {other:?}");
+                    }
+                }
+                PentaractError::NotAuthenticated
+            })
             .and_then(|token_data| {
                 if token_data.claims.typ != expected {
+                    tracing::warn!(
+                        "[JWT] validation failed: token type mismatch (expected {expected:?})"
+                    );
                     return Err(PentaractError::NotAuthenticated);
                 }
                 let id = Uuid::from_str(&token_data.claims.sub)

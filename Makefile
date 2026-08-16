@@ -12,17 +12,21 @@ run_ui:
 # This is your safety net against `docker compose down -v`, an accidental
 # volume deletion, or anything else that wipes pentaract-db-volume.
 #
-# Requires .env (for DATABASE_USER / DATABASE_NAME) and the db container
+# Uses `docker compose exec` against the `db` service (not a hardcoded
+# container name) so this keeps working even if container_name changes
+# or you're running multiple compose projects side by side.
+#
+# Requires .env (for DATABASE_USER / DATABASE_NAME) and the db service
 # to be running.
 backup:
 	@set -a && . ./.env && set +a && \
 	mkdir -p backups && \
 	timestamp=$$(date +%Y%m%d-%H%M%S) && \
-	docker exec pentaract_db pg_dump -U $$DATABASE_USER $$DATABASE_NAME \
+	docker compose exec -T db pg_dump -U $$DATABASE_USER $$DATABASE_NAME \
 		> backups/pentaract-$$timestamp.sql && \
 	echo "Backup written to backups/pentaract-$$timestamp.sql"
 
-# Restores a backup produced by `make backup` into the running db container.
+# Restores a backup produced by `make backup` into the running db service.
 # Usage: make restore FILE=backups/pentaract-20240101-120000.sql
 # WARNING: this overwrites existing data for tables in the dump.
 restore:
@@ -31,5 +35,5 @@ restore:
 		exit 1; \
 	fi
 	@set -a && . ./.env && set +a && \
-	docker exec -i pentaract_db psql -U $$DATABASE_USER $$DATABASE_NAME < $(FILE) && \
+	docker compose exec -T db psql -U $$DATABASE_USER $$DATABASE_NAME < $(FILE) && \
 	echo "Restored from $(FILE)"

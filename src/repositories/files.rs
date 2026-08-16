@@ -73,7 +73,7 @@ impl<'d> FilesRepository<'d> {
         let (path_with_stem, suffix) = {
             let mut splited_path: Vec<_> = in_obj.path.split("/").collect();
             let last = splited_path.last_mut().unwrap();
-            let mut suffix = String::new();
+            let suffix;
             (*last, suffix) = last
                 .split_once(".")
                 .map(|(stem, suffix)| (stem, format!(".{suffix}")))
@@ -306,6 +306,8 @@ impl<'d> FilesRepository<'d> {
             .map(|_| ())
     }
 
+    // Not yet exposed via a router endpoint; kept for the planned rename feature.
+    #[allow(dead_code)]
     pub async fn update_path(
         &self,
         old_path: &str,

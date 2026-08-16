@@ -30,10 +30,11 @@ impl<'d> StorageWorkersService<'d> {
         user: &AuthUser,
     ) -> PentaractResult<StorageWorker> {
         // checking if user already has a storage worker with such name
-        if let Ok(_) = self
+        if self
             .repo
             .get_by_name_and_user_id(&in_schema.name, user.id)
             .await
+            .is_ok()
         {
             return Err(PentaractError::StorageWorkerNameConflict);
         }

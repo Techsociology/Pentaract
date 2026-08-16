@@ -9,6 +9,9 @@ pub enum AccessType {
     A,
 }
 
+// FromRow-mapped model; not constructed directly in code yet but kept for
+// future queries that select full access rows.
+#[allow(dead_code)]
 #[derive(Debug, sqlx::FromRow)]
 pub struct Access {
     pub id: Uuid,

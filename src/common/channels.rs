@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::errors::PentaractResult;
 
 //////////////////////////////////////
-///     Client schemas
+//     Client schemas
 //////////////////////////////////////
 
 pub struct ClientMessage {
@@ -19,6 +19,8 @@ pub enum ClientData {
 
 pub struct UploadFileData {
     pub file_id: Uuid,
+    // kept for future authorization/audit checks; not read yet
+    #[allow(dead_code)]
     pub user_id: Uuid,
     pub file_data: Box<[u8]>,
 }
@@ -26,10 +28,12 @@ pub struct UploadFileData {
 pub struct DownloadFileData {
     pub file_id: Uuid,
     pub storage_id: Uuid,
+    // kept for future authorization/audit checks; not read yet
+    #[allow(dead_code)]
     pub user_id: Uuid,
 }
 //////////////////////////////////////
-///     Storage manager schemas
+//     Storage manager schemas
 //////////////////////////////////////
 
 pub struct StorageManagerMessage {
@@ -48,7 +52,7 @@ pub enum StorageManagerData {
 }
 
 //////////////////////////////////////
-///     Channels
+//     Channels
 //////////////////////////////////////
 
 // pub type ClientListener = oneshot::Receiver<StorageManagerMessage>;
