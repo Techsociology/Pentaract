@@ -7,7 +7,7 @@
 
 _Cloud storage system based on using Telegram as a storage so it doesn't use your server filesystem or any other paid cloud storage system underneath the hood._
 
-Pentaract is aimed to take as small disk space as possible. So it does not need any code interpreter/platform to run. The whole app is just several megabytes in size. It also uses Postgres as a database and we try our best to economy space by not creating unneeded fields and tables and to wisely pick proper datatypes.
+Pentaract is aimed at taking as little disk space as possible. It does not need any code interpreter or platform to run. The whole app is only several megabytes in size. It also uses Postgres as a database, and we try our best to economize space by not creating unnecessary fields and tables and by carefully choosing appropriate data types.
 
 The platform itself can be used differently, like as a personal (on your own server or a local machine) platform or a platform for many users with multiple storages and so on. Since it provides a REST API, you can also use it as a file system in your backend like [NextCloud](https://nextcloud.com/) or [AWS S3](https://aws.amazon.com/s3/) or S3 compatible services (like [MinIO](https://min.io/)), but for now it's early, so it's not recommended for production-ready apps.
 
@@ -22,7 +22,7 @@ git clone https://github.com/Techsociology/Pentaract
 cd Pentaract
 ```
 
-2. Add an `.env` file. **Don't forget to set your superuser email, password and secret key**. See `.env.exmple` for the full list, including optional Telegram tuning knobs:
+2. Add an `.env` file. **Don't forget to set your superuser email, password and secret key**. See `.env.example` for the full list, including optional Telegram tuning knobs:
 
 ```env
 PORT=8000

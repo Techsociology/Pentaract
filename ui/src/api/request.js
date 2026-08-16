@@ -42,9 +42,16 @@ const refreshAccessToken = async () => {
         return result.access_token
     }
 
-    // refresh token is invalid/expired: clear session, user must log in again
+    // refresh token is invalid/expired: clear session and send the user back
+    // to login, since their access token is also about to be rejected.
     setStore('access_token', undefined)
     setStore('refresh_token', undefined)
+    setStore('redirect', window.location.pathname)
+
+    const { addAlert } = alertStore
+    addAlert('Your session has expired. Please log in again.', 'error')
+    window.location.href = '/login'
+
     return null
 }
 

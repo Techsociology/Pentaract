@@ -27,12 +27,7 @@ pub struct StorageManagerService<'d> {
 }
 
 impl<'d> StorageManagerService<'d> {
-    pub fn new(
-        db: &'d PgPool,
-        telegram_baseurl: &'d str,
-        rate_limit: u8,
-        max_retries: u8,
-    ) -> Self {
+    pub fn new(db: &'d PgPool, telegram_baseurl: &'d str, rate_limit: u8, max_retries: u8) -> Self {
         let files_repo = FilesRepository::new(db);
         let storages_repo = StoragesRepository::new(db);
         let chunk_size = 20 * 1024 * 1024;

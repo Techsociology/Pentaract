@@ -44,9 +44,8 @@ impl<'d> AuthService<'d> {
         let access_token = JWTManager::generate(user.clone(), expire_in, &config.secret_key)?;
 
         // generating refresh token
-        let refresh_expire_in = Duration::from_secs(
-            u64::from(config.refresh_token_expire_in_days) * 24 * 60 * 60,
-        );
+        let refresh_expire_in =
+            Duration::from_secs(u64::from(config.refresh_token_expire_in_days) * 24 * 60 * 60);
         let refresh_token =
             JWTManager::generate_refresh(user, refresh_expire_in, &config.secret_key)?;
 
