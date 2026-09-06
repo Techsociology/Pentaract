@@ -26,7 +26,11 @@ pub enum PentaractError {
     #[error("not authenticated")]
     NotAuthenticated,
     #[error("[Telegram API] status {status}: {message}")]
-    TelegramAPIError { status: u16, message: String },
+    TelegramAPIError {
+        status: u16,
+        message: String,
+        retry_after: Option<u64>,
+    },
     #[error("You need to add at least 1 storage worker")]
     NoStorageWorkers,
     #[error("Invalid path")]
@@ -79,6 +83,11 @@ impl From<reqwest::Error> for PentaractError {
             Some(status) if status.is_client_error() => PentaractError::TelegramAPIError {
                 status: status.as_u16(),
                 message: e.to_string(),
+                // reqwest::Error doesn't expose response headers, so a
+                // Retry-After sent alongside a transport-level error (rare)
+                // isn't visible here -- only the explicit status-check path
+                // in bot_api.rs (which has the full Response) reads it.
+                retry_after: None,
             },
             // Malformed/unexpected response body: retrying the same request
             // won't produce a different body, so this is not transient.
