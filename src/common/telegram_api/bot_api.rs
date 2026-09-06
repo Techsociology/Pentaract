@@ -41,15 +41,20 @@ impl<'t> TelegramBotApi<'t> {
                 Ok(v) => return Ok(v),
                 Err(e) if attempt < self.max_retries && Self::is_retryable(&e) => {
                     attempt += 1;
-                    // Rate limiting gets a longer base backoff than transient
-                    // 5xx/network errors, since bursting again immediately just
-                    // trips the limit again.
-                    let base_ms = if Self::is_rate_limited(&e) {
-                        1000u64
+                    // Honor Telegram's Retry-After header exactly when it's
+                    // present (429 responses always carry one); otherwise
+                    // fall back to exponential backoff, with a longer base
+                    // for rate limiting than for transient 5xx/network errors.
+                    let backoff_ms = if let Some(retry_after) = Self::retry_after_ms(&e) {
+                        retry_after
                     } else {
-                        200u64
+                        let base_ms = if Self::is_rate_limited(&e) {
+                            1000u64
+                        } else {
+                            200u64
+                        };
+                        (base_ms * (1 << (attempt - 1))).min(30_000)
                     };
-                    let backoff_ms = (base_ms * (1 << (attempt - 1))).min(30_000);
                     tracing::warn!(
                         "[TELEGRAM API] attempt {attempt}/{} failed, retrying in {backoff_ms}ms: {e}",
                         self.max_retries
@@ -77,6 +82,18 @@ impl<'t> TelegramBotApi<'t> {
 
     fn is_rate_limited(e: &PentaractError) -> bool {
         matches!(e, PentaractError::TelegramAPIError { status, .. } if *status == 429)
+    }
+
+    /// Milliseconds to wait, per Telegram's own Retry-After header, if the
+    /// error carries one.
+    fn retry_after_ms(e: &PentaractError) -> Option<u64> {
+        match e {
+            PentaractError::TelegramAPIError {
+                retry_after: Some(secs),
+                ..
+            } => Some(secs.saturating_mul(1000)),
+            _ => None,
+        }
     }
 
     pub async fn upload(
@@ -125,6 +142,11 @@ impl<'t> TelegramBotApi<'t> {
 
             let status = response.status();
             if !status.is_success() {
+                let retry_after = response
+                    .headers()
+                    .get(reqwest::header::RETRY_AFTER)
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(|v| v.parse::<u64>().ok());
                 let error_text = response
                     .text()
                     .await
@@ -137,6 +159,7 @@ impl<'t> TelegramBotApi<'t> {
                 return Err(PentaractError::TelegramAPIError {
                     status: status.as_u16(),
                     message: error_text,
+                    retry_after,
                 });
             }
 

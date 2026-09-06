@@ -8,12 +8,16 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
  * @typedef {'get' | 'post' | 'patch' | 'delete'} Method
  */
 
+// Single store instance reused everywhere in this module -- createLocalStore
+// just wraps localStorage in a live-reading Proxy, so there's no benefit to
+// recreating it (and its internal signal Map) on every call.
+const [store, setStore] = createLocalStore()
+
 // Guards against multiple concurrent requests each triggering their own
 // refresh call when the access token expires.
 let refreshInFlight = null
 
 const refreshAccessToken = async () => {
-    const [store, setStore] = createLocalStore()
     const refresh_token = store.refresh_token
 
     if (!refresh_token) {
